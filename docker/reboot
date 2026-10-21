@@ -1,0 +1,10 @@
+#!/bin/bash
+(
+    sleep 1
+    was_cs=$(supervisorctl status clever-show 2>/dev/null | grep -c RUNNING)
+    supervisorctl stop clever-show clover
+    supervisorctl restart roscore ros-params sim-net sim-bridge led px4
+    supervisorctl start clover
+    [ "$was_cs" -gt 0 ] && supervisorctl start clever-show
+) >/dev/null 2>&1 &
+echo "Перезагрузка (перезапуск процессов дрона)..."

@@ -1,0 +1,12 @@
+clover-show-sim, Copyright (c) 2026 MaxX-Akela, MIT License (см. LICENSE).
+
+Производные материалы:
+
+- host/world/clover_show.world основан на clover_simulation/resources/worlds/clover_aruco.world,
+  px4/airframes/1.13/4500_clover основан на clover_simulation/airframes/4500_clover.
+  Copyright (c) 2018 Copter Express Technologies, MIT License.
+  https://github.com/CopterExpress/clover
+
+- Образ дрона собирает из исходников Clover и ros_led (MIT, Copyright (c) Copter Express)
+  и устанавливает клиент clever-show (GPL-3) из его репозитория; исходники clever-show в этот
+  репозиторий не входят.

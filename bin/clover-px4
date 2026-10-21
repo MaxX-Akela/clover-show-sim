@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-# Copyright (c) 2026 MaxX-Akela. MIT License.
-"""clover-px4 list | current | use <версия|путь к build/px4_sitl_default> [--drone N]"""
 import argparse
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'host'))
-from cshow import common, containers, px4  # noqa: E402
+from cshow import common, containers, px4
 
 
 def main():
-    ap = argparse.ArgumentParser(prog='clover-px4', description=__doc__)
+    ap = argparse.ArgumentParser(prog='clover-px4', description='clover-px4 list | current | use <версия|путь к build/px4_sitl_default> [--drone N]')
     sub = ap.add_subparsers(dest='cmd', required=True)
     sub.add_parser('list', help='установленные версии')
     sub.add_parser('current', help='активная версия')

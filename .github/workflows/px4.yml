@@ -17,7 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         version: ["1.13.3", "1.15.4"]
-    # focal — та же glibc, что в образе дрона и в Clover VM
     container: px4io/px4-dev-simulation-focal:latest
     steps:
       - uses: actions/checkout@v4

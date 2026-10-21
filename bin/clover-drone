@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-# Copyright (c) 2026 MaxX-Akela. MIT License.
-"""clover-drone list | restart N | reset N | shell N | logs N [clover|px4|bridge|clever-show] | pose N [метка]"""
 import os
 import subprocess
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'host'))
-from cshow import common, containers, poses, px4, pose_cmd  # noqa: E402
+from cshow import common, containers, poses, px4, pose_cmd
 
-USAGE = __doc__
+USAGE = ("clover-drone list | restart N | reset N | shell N | "
+         "logs N [clover|px4|bridge|clever-show|roscore|led|container] | pose N [метка]")
 
 LOGS = {'clover': '/var/log/clover.log', 'px4': '/var/log/clover-show/px4.log',
         'bridge': '/var/log/clover-show/sim-bridge.log', 'clever-show': '/var/log/clever-show.log',

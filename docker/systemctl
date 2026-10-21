@@ -1,0 +1,40 @@
+#!/bin/bash
+STATE=/state/enabled
+mkdir -p "$STATE" 2>/dev/null
+cmd="${1:-}"; shift || true
+svcs=()
+for a in "$@"; do
+    case "$a" in -*) ;; *) svcs+=("${a%.service}") ;; esac
+done
+rc=0
+sup() {
+    case "$1" in
+        clover|clever-show) supervisorctl "$2" "$1" >/dev/null 2>&1 || rc=1 ;;
+        roscore)
+            if [ "$2" = restart ]; then
+                supervisorctl restart roscore ros-params clover >/dev/null 2>&1 || rc=1
+            else
+                supervisorctl "$2" roscore >/dev/null 2>&1 || rc=1
+            fi ;;
+        chrony|chronyd|ntp|ntpd|systemd-timesyncd) ;;
+        *) echo "Unit $1.service not found." >&2; rc=5 ;;
+    esac
+}
+case "$cmd" in
+    restart|start|stop)
+        for s in "${svcs[@]}"; do sup "$s" "$cmd"; done ;;
+    enable)
+        for s in "${svcs[@]}"; do case "$s" in clover|clever-show) : > "$STATE/$s" ;; esac; done ;;
+    disable)
+        for s in "${svcs[@]}"; do rm -f "$STATE/$s"; done ;;
+    is-enabled)
+        [ -e "$STATE/${svcs[0]}" ] && echo enabled || { echo disabled; rc=1; } ;;
+    is-active)
+        supervisorctl status "${svcs[0]}" 2>/dev/null | grep -q RUNNING && echo active || { echo inactive; rc=3; } ;;
+    status)
+        supervisorctl status "${svcs[@]}" ;;
+    reboot) exec /usr/local/bin/reboot ;;
+    daemon-reload|daemon-reexec|mask|unmask) ;;
+    *) echo "systemctl (заглушка): команда '$cmd' не поддерживается" >&2; rc=1 ;;
+esac
+exit $rc
