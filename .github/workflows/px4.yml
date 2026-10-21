@@ -32,7 +32,7 @@ jobs:
         if: contains(inputs.versions, matrix.version)
         run: |
           git config --global --add safe.directory '*'
-          px4/build_sitl.sh "${{ matrix.version }}" out
+          bash px4/build_sitl.sh "${{ matrix.version }}" out
       - name: Release
         if: contains(inputs.versions, matrix.version)
         uses: softprops/action-gh-release@v2

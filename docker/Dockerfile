@@ -41,7 +41,7 @@ USER root
 RUN set -e; \
     rosdep init || true; \
     echo "yaml file:///home/pi/catkin_ws/src/clover/builder/assets/noetic-rosdep-clover.yaml" > /etc/ros/rosdep/sources.list.d/10-clover.list; \
-    sudo -u pi rosdep update; \
+    rosdep update --include-eol-distros; \
     rosdep install -y --from-paths /home/pi/catkin_ws/src --ignore-src --rosdistro noetic \
         --skip-keys="gazebo_ros gazebo_plugins"; \
     rm -rf /var/lib/apt/lists/*; \
