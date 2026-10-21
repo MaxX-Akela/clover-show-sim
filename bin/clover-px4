@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+# Copyright (c) 2026 MaxX-Akela. MIT License.
+"""clover-px4 list | current | use <версия|путь к build/px4_sitl_default> [--drone N]"""
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'host'))
+from cshow import common, containers, px4  # noqa: E402
+
+
+def main():
+    ap = argparse.ArgumentParser(prog='clover-px4', description=__doc__)
+    sub = ap.add_subparsers(dest='cmd', required=True)
+    sub.add_parser('list', help='установленные версии')
+    sub.add_parser('current', help='активная версия')
+    u = sub.add_parser('use', help='сменить версию')
+    u.add_argument('version', help='1.13.3, 1.15.4 или путь к своей сборке build/px4_sitl_default')
+    u.add_argument('--drone', type=int, help='только для этого дрона')
+    args = ap.parse_args()
+
+    try:
+        if args.cmd == 'list':
+            cur = px4.current()
+            for v in px4.versions():
+                print('%s %s' % ('*' if v == cur else ' ', v))
+            print('Доступны для скачивания: %s' % ', '.join(sorted(px4.RELEASES)))
+        elif args.cmd == 'current':
+            print(px4.current() or 'не выбрана')
+        else:
+            if args.drone is not None:
+                common.check_drone_id(args.drone)
+            name = px4.use(args.version, args.drone)
+            print('PX4 %s: %s' % (name, 'для drone%d' % args.drone if args.drone else 'для всех дронов'))
+            ids = containers.running_ids() if containers.docker('info', check=False).returncode == 0 else []
+            if ids:
+                print('Симуляция запущена: перезапустите дронов (clover-drone restart N) — '
+                      'параметры при смене версии будут сохранены в params-<версия>.bak и сброшены.')
+    except px4.Px4Error as e:
+        common.die(str(e))
+
+
+if __name__ == '__main__':
+    main()

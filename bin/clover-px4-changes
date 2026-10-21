@@ -1,0 +1,4 @@
+#!/bin/bash
+# Copyright (c) 2026 MaxX-Akela. MIT License.
+# Меню выбора версии PX4 (то же, что при установке).
+exec "$(dirname "$(readlink -f "$0")")/../px4/select_menu.sh" "$@"

@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+# Copyright (c) 2026 MaxX-Akela. MIT License.
+"""clover-drone list | restart N | reset N | shell N | logs N [clover|px4|bridge|clever-show] | pose N [метка]"""
+import os
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'host'))
+from cshow import common, containers, poses, px4, pose_cmd  # noqa: E402
+
+USAGE = __doc__
+
+LOGS = {'clover': '/var/log/clover.log', 'px4': '/var/log/clover-show/px4.log',
+        'bridge': '/var/log/clover-show/sim-bridge.log', 'clever-show': '/var/log/clever-show.log',
+        'roscore': '/var/log/clover-show/roscore.log', 'led': '/var/log/clover-show/led.log'}
+
+
+def need_id(argv):
+    if len(argv) < 2:
+        common.die('нужен номер дрона\n' + USAGE)
+    try:
+        n = int(argv[1])
+    except ValueError:
+        common.die('номер дрона должен быть числом')
+    common.check_drone_id(n)
+    return n
+
+
+def need_running(n):
+    if not containers.running(n):
+        common.die('drone%d не запущен (simulate.py)' % n)
+
+
+def cmd_list():
+    containers.ensure_docker()
+    run = set(containers.running_ids())
+    data = poses.load()
+    dirs = sorted(int(d[5:]) for d in os.listdir(common.DRONES_DIR)
+                  if d.startswith('drone') and d[5:].isdigit()) if os.path.isdir(common.DRONES_DIR) else []
+    ids = sorted(run | set(dirs))
+    if not ids:
+        print('Дронов нет. Запустите simulate.py')
+        return
+    print('%-8s %-12s %-16s %-10s %s' % ('ДРОН', 'СТАТУС', 'IP', 'PX4', 'ПОЗИЦИЯ'))
+    for n in ids:
+        try:
+            x, y, z, yaw, mid = poses.resolve(n, data)
+            pos = ('метка %d' % mid) if mid is not None else 'x=%.1f y=%.1f' % (x, y)
+        except ValueError as e:
+            pos = str(e)
+        print('%-8s %-12s %-16s %-10s %s' % (common.drone_name(n), 'работает' if n in run else 'остановлен',
+                                             common.drone_ip(n), px4.version_for(n) or '-', pos))
+
+
+def cmd_restart(n):
+    need_running(n)
+    containers.start(n)
+    print('drone%d перезапущен' % n)
+
+
+def cmd_reset(n):
+    was_running = containers.running(n)
+    print('Сброс drone%d: launch-файлы, aruco-карта, clever-show и параметры PX4 вернутся к исходным.' % n)
+    if input('Продолжить? [y/N] ').strip().lower() != 'y':
+        return
+    containers.remove(n)
+    out = containers.backup_and_clear(n)
+    print('Резервная копия: %s' % out)
+    if was_running:
+        containers.start(n)
+        print('drone%d запущен заново' % n)
+
+
+def cmd_shell(n):
+    need_running(n)
+    os.execvp('docker', ['docker', 'exec', '-it', '-u', 'pi', '-w', '/home/pi', common.container_name(n), 'bash', '-l'])
+
+
+def cmd_logs(n, which):
+    need_running(n)
+    if which == 'container':
+        os.execvp('docker', ['docker', 'logs', '-f', '--tail', '100', common.container_name(n)])
+    path = LOGS.get(which)
+    if not path:
+        common.die('лог «%s» неизвестен (есть: %s, container)' % (which, ', '.join(sorted(LOGS))))
+    os.execvp('docker', ['docker', 'exec', '-it', common.container_name(n), 'tail', '-n', '100', '-F', path])
+
+
+def main(argv):
+    if not argv or argv[0] in ('-h', '--help'):
+        print(USAGE)
+        return
+    cmd = argv[0]
+    if cmd == 'list':
+        return cmd_list()
+    if cmd == 'pose':
+        return pose_cmd.main(argv[1:])
+    containers.ensure_docker()
+    n = need_id(argv)
+    if cmd == 'restart':
+        cmd_restart(n)
+    elif cmd == 'reset':
+        cmd_reset(n)
+    elif cmd == 'shell':
+        cmd_shell(n)
+    elif cmd == 'logs':
+        cmd_logs(n, argv[2] if len(argv) > 2 else 'clover')
+    else:
+        common.die('неизвестная команда «%s»\n%s' % (cmd, USAGE))
+
+
+if __name__ == '__main__':
+    try:
+        main(sys.argv[1:])
+    except (RuntimeError, px4.Px4Error, subprocess.SubprocessError) as e:
+        common.die(str(e))
