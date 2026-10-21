@@ -1,0 +1,35 @@
+name: PX4 SITL builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: "Версии PX4 через запятую (теги v<версия>)"
+        default: "1.13.3,1.15.4"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["1.13.3", "1.15.4"]
+    # focal — та же glibc, что в образе дрона и в Clover VM
+    container: px4io/px4-dev-simulation-focal:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        if: contains(inputs.versions, matrix.version)
+        run: |
+          git config --global --add safe.directory '*'
+          px4/build_sitl.sh "${{ matrix.version }}" out
+      - name: Release
+        if: contains(inputs.versions, matrix.version)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: px4-${{ matrix.version }}
+          name: PX4 ${{ matrix.version }} SITL
+          files: out/px4_sitl_default-${{ matrix.version }}.tar.gz
