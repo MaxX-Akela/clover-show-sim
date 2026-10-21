@@ -67,7 +67,7 @@ RUN mkdir -p /opt/seed && \
     chown -R pi:pi /home/pi
 
 COPY docker/sim.launch docker/supervisord.conf docker/ros-env docker/ros-params.sh docker/autostart.sh \
-     docker/sim-net.sh docker/run-px4.sh /opt/clover-show/
+     docker/sim-net.sh docker/run-px4.sh docker/px4-branch.sh /opt/clover-show/
 COPY docker/bridge/ /opt/clover-show/bridge/
 COPY host/cshow/wire.py /opt/clover-show/bridge/wire.py
 COPY px4/airframes/ /opt/clover-show/airframes/

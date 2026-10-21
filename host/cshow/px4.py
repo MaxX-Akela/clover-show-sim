@@ -7,7 +7,7 @@ import urllib.request
 
 from . import common
 
-RELEASES = {'1.13.3': 'px4-1.13.3', '1.15.4': 'px4-1.15.4'}
+RELEASES = {'1.8.2-clever.10': 'px4-1.8.2-clever.10', '1.13.3': 'px4-1.13.3', '1.16.0': 'px4-1.16.0', '1.17.0': 'px4-1.17.0'}
 REPO_URL = 'https://github.com/MaxX-Akela/clover-show-sim/releases/download/%s/px4_sitl_default-%s.tar.gz'
 CURRENT = os.path.join(common.PX4_DIR, 'current')
 
@@ -17,14 +17,23 @@ class Px4Error(Exception):
 
 
 def branch_of(version_dir):
+    binary = os.path.join(version_dir, 'bin', 'px4')
     rcs = os.path.join(version_dir, 'etc', 'init.d-posix', 'rcS')
     sim = os.path.join(version_dir, 'etc', 'init.d-posix', 'px4-rc.simulator')
-    if not (os.path.isfile(os.path.join(version_dir, 'bin', 'px4')) and os.path.isfile(rcs)):
-        raise Px4Error('%s: нет bin/px4 или etc/init.d-posix/rcS — это не каталог build/px4_sitl_default' % version_dir)
+    if not os.path.isfile(binary):
+        raise Px4Error('%s: нет bin/px4 — это не собранный PX4 SITL' % version_dir)
+    if not os.path.isfile(rcs):
+        if os.path.isfile(os.path.join(version_dir, 'ROMFS', 'px4fmu_common', 'mixers', 'quad_w.main.mix')):
+            return '1.8'
+        raise Px4Error('%s: нет etc/init.d-posix/rcS и ROMFS/px4fmu_common/mixers — это не каталог сборки SITL' % version_dir)
     if not os.path.isfile(sim):
         raise Px4Error('%s: нет px4-rc.simulator — сборка не для симулятора' % version_dir)
     with open(sim) as f:
         text = f.read()
+    mavlinksim = os.path.join(version_dir, 'etc', 'init.d-posix', 'px4-rc.mavlinksim')
+    if os.path.isfile(mavlinksim):
+        with open(mavlinksim) as f:
+            text += f.read()
     if 'simulator_mavlink' in text:
         branch = '1.14'
     elif re.search(r'\bsimulator start\b', text):
@@ -112,7 +121,7 @@ def resolve(arg):
 
 
 def airframe_dir(branch):
-    return os.path.join(common.REPO, 'px4', 'airframes', '1.13' if branch == '1.13' else '1.14')
+    return os.path.join(common.REPO, 'px4', 'airframes', branch)
 
 
 def use(arg, drone=None):
@@ -132,6 +141,13 @@ def version_for(drone):
     if os.path.exists(f):
         return open(f).read().strip()
     return current()
+
+
+def branch_for(drone):
+    ver = version_for(drone)
+    if not ver:
+        raise Px4Error('версия PX4 не выбрана (clover-px4 use <версия>)')
+    return branch_of(os.path.realpath(os.path.join(common.PX4_DIR, ver)))
 
 
 def backup_params(drone, old_version):

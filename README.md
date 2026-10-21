@@ -10,17 +10,13 @@ cd ~/clover-show-sim
 ./install.sh              # меню выбора версии PX4
 ```
 
-Ключи: `--px4 1.13.3|1.15.4|<путь к build/px4_sitl_default>` (без меню), `--build-image` (собрать образ дрона локально вместо скачивания), `--skip-blender`, `--skip-server`. Скрипт идемпотентен. Каталог репозитория после установки не переносите: команды в `/usr/local/bin` — симлинки на него. После установки перелогиньтесь (группа `docker`).
-
-Что ставится: Docker, образ дрона, выбранная сборка PX4 (`~/.clover-show/px4/<версия>`), сервер clever-show в `~/clever-show` с зависимостями в `~/.clover-show/venv-server` (**не настроен и не запущен**), Blender 2.93 LTS в `/opt` (аддон clever-show не ставится), команды и ярлыки на рабочем столе. Старые ярлыки Clover VM не затрагиваются.
-
 ## Запуск
 
 Ярлык «Шоу: N дронов в Gazebo» или в терминале:
 
 ```bash
 source ~/catkin_ws/devel/setup.bash
-simulate.py                       # 3 дрона
+simulate.py
 ```
 
 Ctrl+C останавливает Gazebo, мост и контейнеры. Обычный одиночный симулятор Клевера (`roslaunch clover_simulation simulator.launch`) и ярлык «Gazebo Clover» не затрагиваются, но одновременно с шоу их запускать нельзя.
@@ -42,3 +38,4 @@ Web Клевера каждого дрона: `http://drone1.local/`, `http://dr
 | `clover-field list \| use <файл>` | ArUco-поле Gazebo |
 | `clover-px4 list \| current \| use <версия\|путь> [--drone N]` | версии PX4 |
 | `clover-px4-changes` | меню выбора версии PX4 |
+

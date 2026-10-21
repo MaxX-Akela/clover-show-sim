@@ -13,7 +13,7 @@ def main():
     sub.add_parser('list', help='установленные версии')
     sub.add_parser('current', help='активная версия')
     u = sub.add_parser('use', help='сменить версию')
-    u.add_argument('version', help='1.13.3, 1.15.4 или путь к своей сборке build/px4_sitl_default')
+    u.add_argument('version', help='1.8.2-clever.10, 1.13.3, 1.16.0, 1.17.0 или путь к своей сборке build/px4_sitl_default')
     u.add_argument('--drone', type=int, help='только для этого дрона')
     args = ap.parse_args()
 

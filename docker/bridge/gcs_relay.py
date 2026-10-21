@@ -3,11 +3,10 @@ import select
 import socket
 import sys
 
-PX4_LOCAL_PORT = 18570
 GCS_PORT = 14550
 
 
-def main(host):
+def main(host, px4_port):
     inner = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     inner.bind(('127.0.0.1', GCS_PORT))
     outer = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -19,8 +18,8 @@ def main(host):
             if s is inner:
                 outer.sendto(data, (host, GCS_PORT))
             else:
-                inner.sendto(data, ('127.0.0.1', PX4_LOCAL_PORT))
+                inner.sendto(data, ('127.0.0.1', px4_port))
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 18570)

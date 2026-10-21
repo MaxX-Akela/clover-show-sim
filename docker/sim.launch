@@ -3,7 +3,7 @@
     <param name="use_sim_time" value="true"/>
 
     <include file="$(find clover)/launch/clover.launch">
-        <arg name="fcu_conn" value="sitl"/>
+        <arg name="fcu_conn" value="$(optenv CLOVER_SHOW_FCU_CONN sitl)"/>
         <arg name="fcu_ip" value="127.0.0.1"/>
         <arg name="fcu_sys_id" value="$(env DRONE_ID)"/>
         <arg name="simulator" value="true"/>

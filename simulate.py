@@ -109,7 +109,11 @@ def main():
     import subprocess as sp
     cd_path = sp.check_output(['rospack', 'find', 'clover_description'], universal_newlines=True).strip()
     raw = urdf.run_xacro(os.path.join(cd_path, 'urdf/clover/clover4.xacro'))
-    urdfs = {i: urdf.postprocess(raw, i) for i in range(1, args.n + 1)}
+    try:
+        branches = {i: px4.branch_for(i) for i in range(1, args.n + 1)}
+    except px4.Px4Error as e:
+        common.die(str(e))
+    urdfs = {i: urdf.postprocess(raw, i, branches[i]) for i in range(1, args.n + 1)}
 
     log('поле: %s' % os.path.basename(fpath))
     world = field.build_world(fpath)

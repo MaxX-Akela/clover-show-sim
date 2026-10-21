@@ -5,7 +5,7 @@ on:
     inputs:
       versions:
         description: "Версии PX4 через запятую (теги v<версия>)"
-        default: "1.13.3,1.15.4"
+        default: "1.8.2-clever.10,1.13.3,1.16.0,1.17.0"
 
 permissions:
   contents: write
@@ -16,8 +16,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["1.13.3", "1.15.4"]
-    container: px4io/px4-dev-simulation-focal:latest
+        include:
+          - version: "1.8.2-clever.10"
+            image: px4io/px4-dev-simulation-bionic:latest
+          - version: "1.13.3"
+            image: px4io/px4-dev-simulation-focal:latest
+          - version: "1.16.0"
+            image: px4io/px4-dev-simulation-focal:latest
+          - version: "1.17.0"
+            image: px4io/px4-dev-simulation-focal:latest
+    container: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
       - name: Build

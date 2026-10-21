@@ -77,13 +77,21 @@ class Px4Detect(TmpHome):
         shutil.copytree(rom, os.path.join(d, 'etc'))
         return d
 
-    @unittest.skipUnless(os.environ.get('PX4_SRC_DIR'), 'нужен PX4_SRC_DIR с px4-v1.13.3 и px4-v1.15.4')
+    @unittest.skipUnless(os.environ.get('PX4_SRC_DIR'), 'нужен PX4_SRC_DIR с px4-v1.13.3, px4-v1.16.0 и px4-v1.17.0')
     def test_branch_detection(self):
-        for ver, branch in (('v1.13.3', '1.13'), ('v1.15.4', '1.14')):
+        for ver, branch in (('v1.13.3', '1.13'), ('v1.16.0', '1.14'), ('v1.17.0', '1.14')):
             rom = os.path.join(os.environ['PX4_SRC_DIR'], 'px4-' + ver, 'ROMFS', 'px4fmu_common')
             d = self._fake_build(rom)
             self.assertEqual(px4.branch_of(d), branch)
             shutil.rmtree(d)
+
+    def test_legacy_layout_detected(self):
+        d = os.path.join(self.tmp, 'legacy')
+        os.makedirs(os.path.join(d, 'bin'))
+        open(os.path.join(d, 'bin', 'px4'), 'w').close()
+        os.makedirs(os.path.join(d, 'ROMFS', 'px4fmu_common', 'mixers'))
+        open(os.path.join(d, 'ROMFS', 'px4fmu_common', 'mixers', 'quad_w.main.mix'), 'w').close()
+        self.assertEqual(px4.branch_of(d), '1.8')
 
     def test_broken_build_gives_clear_error(self):
         d = os.path.join(self.tmp, 'empty')
@@ -114,6 +122,16 @@ class Urdf(unittest.TestCase):
             for p in root.iter('plugin'):
                 self.assertEqual(p.find('robotNamespace').text, 'drone%d' % n)
             self.assertEqual([t.text for t in root.iter('topicName')], ['rangefinder/range'])
+
+    @unittest.skipUnless(os.environ.get('RAW_URDF'), 'нужен RAW_URDF — вывод xacro clover4.xacro')
+    def test_udp_for_legacy_branch(self):
+        with open(self.RAW) as f:
+            raw = f.read()
+        root = ET.fromstring(urdf.postprocess(raw, 2, '1.8'))
+        mi = [p for p in root.iter('plugin') if p.get('filename') == 'libgazebo_mavlink_interface.so'][0]
+        self.assertEqual(mi.find('use_tcp').text, '0')
+        self.assertEqual(mi.find('mavlink_addr').text, common.drone_ip(2))
+        self.assertEqual(mi.find('mavlink_udp_port').text, '14560')
 
 
 if __name__ == '__main__':

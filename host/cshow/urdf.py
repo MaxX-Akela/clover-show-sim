@@ -11,7 +11,7 @@ def run_xacro(xacro_file):
     return subprocess.check_output(['xacro', xacro_file] + XACRO_ARGS, universal_newlines=True)
 
 
-def postprocess(urdf_text, n):
+def postprocess(urdf_text, n, branch='1.13'):
     ns = common.drone_name(n)
     root = ET.fromstring(urdf_text)
     root.set('name', ns)
@@ -25,8 +25,19 @@ def postprocess(urdf_text, n):
             if port is None:
                 raise ValueError('в mavlink_interface нет mavlink_tcp_port (изменился xacro Клевера?)')
             port.text = str(common.SIM_TCP_BASE + n - 1)
+            if branch == '1.8':
+                _use_udp(plugin, n)
         if plugin.get('filename') == 'libgazebo_ros_range.so':
             topic = plugin.find('topicName')
             if topic is not None and topic.text.startswith('/'):
                 topic.text = topic.text.lstrip('/')
     return ET.tostring(root, encoding='unicode')
+
+
+def _use_udp(plugin, n):
+    for tag, value in (('use_tcp', '0'), ('mavlink_addr', common.drone_ip(n)),
+                       ('mavlink_udp_port', str(common.SIM_UDP_PORT))):
+        el = plugin.find(tag)
+        if el is None:
+            raise ValueError('в mavlink_interface нет %s (изменился xacro Клевера?)' % tag)
+        el.text = value

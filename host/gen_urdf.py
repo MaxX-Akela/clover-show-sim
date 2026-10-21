@@ -14,4 +14,4 @@ if __name__ == '__main__':
         path = subprocess.check_output(['rospack', 'find', 'clover_description'],
                                        universal_newlines=True).strip()
         text = urdf.run_xacro(os.path.join(path, 'urdf/clover/clover4.xacro'))
-    print(urdf.postprocess(text, n))
+    print(urdf.postprocess(text, n, sys.argv[3] if len(sys.argv) > 3 else '1.13'))
