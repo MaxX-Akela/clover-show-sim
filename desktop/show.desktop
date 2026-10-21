@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Шоу: N дронов в Gazebo
+Comment=clover-show-sim
+Exec=xfce4-terminal --hold --title='Шоу в Gazebo' -e 'bash -lc "source ~/catkin_ws/devel/setup.bash; @REPO@/simulate.py"'
+Icon=applications-games
+Terminal=false

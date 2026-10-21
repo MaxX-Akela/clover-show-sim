@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Папка дронов
+Comment=clover-show-sim
+Exec=xdg-open @HOME@/clover-show/drones
+Icon=folder
+Terminal=false

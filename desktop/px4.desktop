@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Сменить PX4
+Comment=clover-show-sim
+Exec=xfce4-terminal --title='Версия PX4' -e '@REPO@/bin/clover-px4-changes'
+Icon=applications-system
+Terminal=false

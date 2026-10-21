@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Поле ArUco
+Comment=clover-show-sim
+Exec=xfce4-terminal --title='Поле ArUco' -e '@REPO@/host/field_menu.sh'
+Icon=applications-graphics
+Terminal=false
